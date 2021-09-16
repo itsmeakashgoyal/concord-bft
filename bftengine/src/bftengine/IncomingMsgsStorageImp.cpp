@@ -160,6 +160,45 @@ IncomingMsg IncomingMsgsStorageImp::popThreadLocal() {
   }
 }
 
+void IncomingMsgsStorageImp::addmessageSizeToHistogram(MsgSize mSize, MsgCode::Type type) {
+  switch (type) {
+    case MsgCode::Type::PrePrepare:
+      histograms_.prepareMsg_size->record(mSize);
+      break;
+
+    case MsgCode::Type::ViewChange:
+      histograms_.ViewChangeMsg_size->record(mSize);
+      break;
+
+    case MsgCode::Type::CommitPartial:
+      histograms_.CommitPartialMsg_size->record(mSize);
+      break;
+
+    case MsgCode::Type::CommitFull:
+      histograms_.CommitFullMsg_size->record(mSize);
+      break;
+
+    case MsgCode::Type::StateTransfer:
+      histograms_.StateTransferMsg_size->record(mSize);
+      break;
+
+    case MsgCode::Type::ClientRequest:
+      histograms_.ClientRequestMsg_size->record(mSize);
+      break;
+
+    case MsgCode::Type::ClientBatchRequest:
+      histograms_.ClientBatchRequestMsg_size->record(mSize);
+      break;
+
+    case MsgCode::Type::PreProcessResult:
+      histograms_.PreProcessResultMsg_size->record(mSize);
+      break;
+
+    default:
+      break;
+  }
+}
+
 void IncomingMsgsStorageImp::dispatchMessages(std::promise<void>& signalStarted) {
   signalStarted.set_value();
   MDC_PUT(MDC_REPLICA_ID_KEY, std::to_string(replicaId_));
@@ -184,6 +223,9 @@ void IncomingMsgsStorageImp::dispatchMessages(std::promise<void>& signalStarted)
           // TODO: (AJS) Don't turn this back into a raw pointer.
           // Pass the smart pointer through the message handlers so they take ownership.
           message = msg.external.release();
+
+          addmessageSizeToHistogram(message->size(), type);
+
           msgHandlerCallback = msgHandlers_->getCallback(message->type());
           if (msgHandlerCallback) {
             msgHandlerCallback(message);

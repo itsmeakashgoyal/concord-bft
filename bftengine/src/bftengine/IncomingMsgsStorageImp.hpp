@@ -94,6 +94,10 @@ class IncomingMsgsStorageImp : public IncomingMsgsStorage {
   static constexpr int64_t MAX_VALUE_NANOSECONDS = 1000 * 1000 * 1000 * 5l;
   // 60 seconds
   static constexpr int64_t MAX_VALUE_MICROSECONDS = 1000 * 1000 * 60l;
+
+  void addmessageSizeToHistogram(MsgSize mSize, MsgCode::Type type);
+  static constexpr int64_t MAX_MESSAGE_SIZE = 1024 * 1024 * 1024l;  // 1GB
+
   using Recorder = concord::diagnostics::Recorder;
   struct Recorders {
     Recorders() {
@@ -106,15 +110,34 @@ class IncomingMsgsStorageImp : public IncomingMsgsStorage {
                                           evaluate_timers,
                                           take_lock,
                                           wait_for_cv,
-                                          dropped_msgs_in_a_row});
+                                          dropped_msgs_in_a_row,
+                                          prepareMsg_size,
+                                          ViewChangeMsg_size,
+                                          CommitPartialMsg_size,
+                                          CommitFullMsg_size,
+                                          StateTransferMsg_size,
+                                          ClientRequestMsg_size,
+                                          ClientBatchRequestMsg_size,
+                                          PreProcessResultMsg_size});
       }
     }
+
     DEFINE_SHARED_RECORDER(external_queue_len_at_swap, 1, 10000, 3, concord::diagnostics::Unit::COUNT);
     DEFINE_SHARED_RECORDER(internal_queue_len_at_swap, 1, 10000, 3, concord::diagnostics::Unit::COUNT);
     DEFINE_SHARED_RECORDER(take_lock, 1, MAX_VALUE_MICROSECONDS, 3, concord::diagnostics::Unit::MICROSECONDS);
     DEFINE_SHARED_RECORDER(wait_for_cv, 1, MAX_VALUE_MICROSECONDS, 3, concord::diagnostics::Unit::MICROSECONDS);
     DEFINE_SHARED_RECORDER(evaluate_timers, 1, MAX_VALUE_MICROSECONDS, 3, concord::diagnostics::Unit::MICROSECONDS);
     DEFINE_SHARED_RECORDER(dropped_msgs_in_a_row, 1, 100000, 3, concord::diagnostics::Unit::COUNT);
+
+    // Message size related recorder
+    DEFINE_SHARED_RECORDER(prepareMsg_size, 1, MAX_MESSAGE_SIZE, 3, concord::diagnostics::Unit::BYTES);
+    DEFINE_SHARED_RECORDER(ViewChangeMsg_size, 1, MAX_MESSAGE_SIZE, 3, concord::diagnostics::Unit::BYTES);
+    DEFINE_SHARED_RECORDER(CommitPartialMsg_size, 1, MAX_MESSAGE_SIZE, 3, concord::diagnostics::Unit::BYTES);
+    DEFINE_SHARED_RECORDER(CommitFullMsg_size, 1, MAX_MESSAGE_SIZE, 3, concord::diagnostics::Unit::BYTES);
+    DEFINE_SHARED_RECORDER(StateTransferMsg_size, 1, MAX_MESSAGE_SIZE, 3, concord::diagnostics::Unit::BYTES);
+    DEFINE_SHARED_RECORDER(ClientRequestMsg_size, 1, MAX_MESSAGE_SIZE, 3, concord::diagnostics::Unit::BYTES);
+    DEFINE_SHARED_RECORDER(ClientBatchRequestMsg_size, 1, MAX_MESSAGE_SIZE, 3, concord::diagnostics::Unit::BYTES);
+    DEFINE_SHARED_RECORDER(PreProcessResultMsg_size, 1, MAX_MESSAGE_SIZE, 3, concord::diagnostics::Unit::BYTES);
   };
   Recorders histograms_;
 

@@ -204,6 +204,10 @@ void ReplicaImp::onMessage<ClientRequestMsg>(ClientRequestMsg *m) {
   span.setTag("cid", m->getCid());
   span.setTag("seq_num", reqSeqNum);
 
+  LOG_INFO(GL,
+           "DAMLTEST_CLIENTMSG: ReqId: " << m->requestSeqNum() << ", cid: " << m->getCid() << ", type: " << m->type()
+                                         << ", size: " << m->size());
+
   // Drop external msgs ff:
   // -  replica keys haven't been exchanged for all replicas and it's not a key exchange msg then don't accept the msgs.
   // -  the public keys of clients havn't been published yet.
@@ -803,6 +807,8 @@ void ReplicaImp::onMessage<PrePrepareMsg>(PrePrepareMsg *msg) {
   span.setTag("rid", config_.getreplicaId());
   span.setTag("seq_num", msgSeqNum);
 
+  histograms_.prePrepareMsgRequests->record(msg->numberOfRequests());
+
   if (!currentViewIsActive() && viewsManager->waitingForMsgs() && msgSeqNum > lastStableSeqNum) {
     ConcordAssert(!msg->isNull());  // we should never send (and never accept) null PrePrepare message
 
@@ -848,6 +854,25 @@ void ReplicaImp::onMessage<PrePrepareMsg>(PrePrepareMsg *msg) {
         clientsManager->removeRequestsOutOfBatchBounds(req.clientProxyId(), req.requestSeqNum());
         if (clientsManager->canBecomePending(req.clientProxyId(), req.requestSeqNum()))
           clientsManager->addPendingRequest(req.clientProxyId(), req.requestSeqNum(), req.getCid());
+
+        LOG_INFO(GL,
+                 "DAMLLOG: " << KVLOG(msg->numberOfRequests(),
+                                      req.type(),
+                                      req.requestSeqNum(),
+                                      req.size(),
+                                      req.clientProxyId(),
+                                      req.senderId(),
+                                      req.spanContextSize()));
+        if (req.size() > 65536) {
+          LOG_INFO(GL,
+                   "DAMLDUMP ClientRequestMsg: " << KVLOG(msg->numberOfRequests(),
+                                                          req.type(),
+                                                          req.requestSeqNum(),
+                                                          req.size(),
+                                                          req.clientProxyId(),
+                                                          req.senderId(),
+                                                          req.spanContextSize()));
+        }
       }
       if (ps_) {
         ps_->beginWriteTran();
@@ -1272,6 +1297,29 @@ void ReplicaImp::onInternalMsg(InternalMessage &&msg) {
   }
   // Handle a pre prepare sent by self
   if (auto *ppm = std::get_if<PrePrepareMsg *>(&msg)) {
+    auto it = RequestsIterator(*ppm);
+    char *requestBody = nullptr;
+
+    int64_t result_msg_count = 0;
+    int64_t client_msg_count = 0;
+
+    while (it.getAndGoToNext(requestBody)) {
+      ClientRequestMsg req((ClientRequestMsgHeader *)requestBody);
+      LOG_INFO(GL,
+               "DAMLTEST: seq: " << (*ppm)->seqNumber() << ", cid: " << (*ppm)->getCid() << ", type: " << req.type()
+                                 << ", size: " << req.size());
+
+      if (req.type() == MsgCode::Type::PreProcessResult) {
+        result_msg_count++;
+      }
+
+      if (req.type() == MsgCode::Type::ClientRequest) {
+        client_msg_count++;
+      }
+    }
+    histograms_.clientRequestCount->record(client_msg_count);
+    histograms_.preProcessResultCount->record(result_msg_count);
+
     return startConsensusProcess(*ppm, true);
   }
   // Handle prepare related internal messages

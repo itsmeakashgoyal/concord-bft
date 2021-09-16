@@ -498,6 +498,8 @@ class ReplicaImp : public InternalReplicaApi, public ReplicaForStateTransfer {
   // 60 seconds
   static constexpr int64_t MAX_VALUE_NANOSECONDS = 1000 * 1000 * 1000 * 60l;
 
+  static constexpr int64_t MAX_NUM_REQUEST_IN_BATCH = maxNumOfRequestsInBatch * 10;
+
   using Recorder = concord::diagnostics::Recorder;
   using Unit = concord::diagnostics::Unit;
 
@@ -529,7 +531,10 @@ class ReplicaImp : public InternalReplicaApi, public ReplicaForStateTransfer {
                                         prePrepareWriteTransaction,
                                         broadcastPrePrepare,
                                         sendPreparePartialToSelf,
-                                        sendPartialProofToSelf});
+                                        sendPartialProofToSelf,
+                                        prePrepareMsgRequests,
+                                        clientRequestCount,
+                                        preProcessResultCount});
     }
 
     DEFINE_SHARED_RECORDER(send, 1, MAX_VALUE_NANOSECONDS, 3, Unit::NANOSECONDS);
@@ -567,6 +572,9 @@ class ReplicaImp : public InternalReplicaApi, public ReplicaForStateTransfer {
     DEFINE_SHARED_RECORDER(broadcastPrePrepare, 1, MAX_VALUE_MICROSECONDS, 3, Unit::MICROSECONDS);
     DEFINE_SHARED_RECORDER(sendPreparePartialToSelf, 1, MAX_VALUE_MICROSECONDS, 3, Unit::MICROSECONDS);
     DEFINE_SHARED_RECORDER(sendPartialProofToSelf, 1, MAX_VALUE_MICROSECONDS, 3, Unit::MICROSECONDS);
+    DEFINE_SHARED_RECORDER(prePrepareMsgRequests, 1, MAX_NUM_REQUEST_IN_BATCH, 3, concord::diagnostics::Unit::BYTES);
+    DEFINE_SHARED_RECORDER(clientRequestCount, 1, MAX_NUM_REQUEST_IN_BATCH, 3, concord::diagnostics::Unit::BYTES);
+    DEFINE_SHARED_RECORDER(preProcessResultCount, 1, MAX_NUM_REQUEST_IN_BATCH, 3, concord::diagnostics::Unit::BYTES);
   };
 
   Recorders histograms_;
