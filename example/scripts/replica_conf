@@ -1,0 +1,82 @@
+numOfClientProxies: 0
+numOfExternalClients: 30
+concurrencyLevel: 3
+debugStatisticsEnabled: true
+viewChangeTimerMillisec: 10000
+statusReportTimerMillisec: 500
+preExecutionFeatureEnabled: true 
+clientBatchingEnabled: true 
+pruningEnabled_: true
+numBlocksToKeep_: 10
+batchedPreProcessEnabled: true
+timeServiceEnabled: true
+enablePostExecutionSeparation: true
+preExecutionResultAuthEnabled: false
+numOfClientServices: 1
+viewChangeProtocolEnabled: true
+autoPrimaryRotationTimerMillisec: 5000
+autoPrimaryRotationEnabled: true
+keyExchangeOnStart: true
+batchingPolicy: 0
+maxBatchSizeInBytes: 33554432
+maxNumOfRequestsInBatch: 100
+batchFlushPeriod: 1000
+pathToOperatorPublicKey_: operator_pub.pem
+publicKeysOfClients:
+dbCheckpointFeatureEnabled: false
+dbCheckPointWindowSize: 150
+dbSnapshotIntervalSeconds: 3600
+dbCheckpointMonitorIntervalSeconds: 60
+maxNumberOfDbCheckpoints: 0
+dbCheckpointDirPath:
+clientTransactionSigningEnabled: true
+blockAccumulation: false
+certificatesRootPath: certs
+publishReplicasMasterKeyOnStartup: 1
+txnSigningKeysPath: /tmp/transaction_signing_keys
+principalsMapping: 7 8 17;9 10 18;11 12 19;13 14;15 16
+certRootPath: /tmp/certificates
+logPropsFile: logging.properties
+keysFilePrefix: replica_keys_
+cronEntryNumberOfExecutes: 3
+node:
+  - replica:
+      - principal_id: 0
+        replica_host: concord1
+        replica_port: 3501
+        event_port: 50051
+  - replica:
+      - principal_id: 1
+        replica_host: concord2
+        replica_port: 3501
+        event_port: 50051
+  - replica:
+      - principal_id: 2
+        replica_host: concord3
+        replica_port: 3501
+        event_port: 50051
+  - replica:
+      - principal_id: 3
+        replica_host: concord4
+        replica_port: 3501
+        event_port: 50051
+participant_nodes:
+  - participant_node:
+      - participant_node_host: 0.0.0.0
+        principal_id: 55
+        external_clients:
+          - client:
+              - client_port: 3502
+                principal_id: 21
+          - client:
+              - client_port: 3503
+                principal_id: 22
+          - client:
+              - client_port: 3504
+                principal_id: 23
+          - client:
+              - client_port: 3505
+                principal_id: 24
+          - client:
+              - client_port: 3506
+                principal_id: 25
