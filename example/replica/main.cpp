@@ -1,4 +1,4 @@
-#include "Setup.hpp"
+#include "setup_replica.hpp"
 #include "Replica.h"
 #include "InternalCommandsHandler.hpp"
 #include "replica_state_sync_imp.hpp"
@@ -25,7 +25,7 @@ namespace concord::kvbc::example {
 std::atomic_bool timeToExit = false;
 std::shared_ptr<concord::kvbc::Replica> replica(nullptr);
 
-void cronSetup(ReplicaSetup& setup, const Replica& replica) {
+void cronSetup(SetupReplica& setup, const Replica& replica) {
   if (!setup.GetCronEntryNumberOfExecutes()) {
     return;
   }
@@ -35,7 +35,7 @@ void cronSetup(ReplicaSetup& setup, const Replica& replica) {
   const auto cronTableRegistry = replica.cronTableRegistry();
   const auto ticksGenerator = replica.ticksGenerator();
 
-  auto& cronTable = cronTableRegistry->operator[](ReplicaSetup::kCronTableComponentId);
+  auto& cronTable = cronTableRegistry->operator[](SetupReplica::kCronTableComponentId);
 
   // Make sure these are available for rules and actions that are called in the main replica thread.
   static auto metricsComponent =
@@ -59,11 +59,11 @@ void cronSetup(ReplicaSetup& setup, const Replica& replica) {
   cronTable.addEntry({entryPos, rule, action});
 
   // Start the ticks generator.
-  ticksGenerator->start(ReplicaSetup::kCronTableComponentId, ReplicaSetup::kTickGeneratorPeriod);
+  ticksGenerator->start(SetupReplica::kCronTableComponentId, SetupReplica::kTickGeneratorPeriod);
 }
 
 void runReplica(int argc, char** argv) {
-  const auto setup = ReplicaSetup::ParseArgs(argc, argv);
+  const auto setup = SetupReplica::ParseArgs(argc, argv);
   logging::initLogger(setup->getLogPropertiesFile());
   auto logger = setup->GetLogger();
   MDC_PUT(MDC_REPLICA_ID_KEY, std::to_string(setup->GetReplicaConfig().replicaId));

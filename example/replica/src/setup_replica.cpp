@@ -9,7 +9,7 @@
 #include <memory>
 
 #include "Logger.hpp"
-#include "Setup.hpp"
+#include "setup_replica.hpp"
 #include "communication/CommFactory.hpp"
 #include "common_constants.hpp"
 #include "memorydb/client.h"
@@ -34,7 +34,7 @@ namespace concord::kvbc {
 // Copy a value from the YAML node to `out`.
 // Throws and exception if no value could be read but the value is required.
 template <typename T>
-void ReplicaSetup::readYamlField(const YAML::Node& yaml, const std::string& index, T& out, bool value_required) {
+void SetupReplica::readYamlField(const YAML::Node& yaml, const std::string& index, T& out, bool value_required) {
   try {
     out = yaml[index].as<T>();
   } catch (const std::exception& e) {
@@ -49,7 +49,7 @@ void ReplicaSetup::readYamlField(const YAML::Node& yaml, const std::string& inde
   }
 }
 
-void ReplicaSetup::ParseReplicaConfFile(bftEngine::ReplicaConfig& replicaConfig, const YAML::Node& rconfig_yaml) {
+void SetupReplica::ParseReplicaConfFile(bftEngine::ReplicaConfig& replicaConfig, const YAML::Node& rconfig_yaml) {
   // Parsing the replica config file
   readYamlField(rconfig_yaml, "numOfClientProxies", replicaConfig.numOfClientProxies);
   readYamlField(rconfig_yaml, "numOfExternalClients", replicaConfig.numOfExternalClients);
@@ -92,8 +92,8 @@ void ReplicaSetup::ParseReplicaConfFile(bftEngine::ReplicaConfig& replicaConfig,
       std::chrono::seconds(rconfig_yaml["dbCheckpointMonitorIntervalSeconds"].as<uint64_t>());
 }
 
-std::unique_ptr<ReplicaSetup> ReplicaSetup::ParseArgs(int argc, char** argv) {
-  // prepare replica config object from custom replica config file which can be read from ParseReplicaConfigFile() and
+std::unique_ptr<SetupReplica> SetupReplica::ParseArgs(int argc, char** argv) {
+  // prepare replica config object from custom replica config file which can be read from ParseReplicaConfFile() and
   // command line arguments
   std::stringstream args;
   for (int i{1}; i < argc; ++i) {
@@ -169,7 +169,7 @@ std::unique_ptr<ReplicaSetup> ReplicaSetup::ParseArgs(int argc, char** argv) {
     // is set, throw an error
     if (!principalsMapping.empty() && !txnSigningKeysPath.empty()) {
       replicaConfig.clientTransactionSigningEnabled = true;
-      ReplicaSetup::setPublicKeysOfClients(principalsMapping, txnSigningKeysPath, replicaConfig.publicKeysOfClients);
+      SetupReplica::setPublicKeysOfClients(principalsMapping, txnSigningKeysPath, replicaConfig.publicKeysOfClients);
     } else if (principalsMapping.empty() != txnSigningKeysPath.empty()) {
       throw std::runtime_error("Params principals-mapping and txn-signing-key-path must be set simultaneously.");
     }
@@ -203,8 +203,8 @@ std::unique_ptr<ReplicaSetup> ReplicaSetup::ParseArgs(int argc, char** argv) {
     uint16_t metricsPort = conf.listenPort_ + 1000;
 
     LOG_INFO(logger, "\nReplica Configuration: \n" << replicaConfig);
-    std::unique_ptr<ReplicaSetup> setup = nullptr;
-    setup.reset(new ReplicaSetup(replicaConfig,
+    std::unique_ptr<SetupReplica> setup = nullptr;
+    setup.reset(new SetupReplica(replicaConfig,
                                  std::move(comm),
                                  logger,
                                  metricsPort,
@@ -223,7 +223,7 @@ std::unique_ptr<ReplicaSetup> ReplicaSetup::ParseArgs(int argc, char** argv) {
   return nullptr;
 }
 
-std::unique_ptr<IStorageFactory> ReplicaSetup::GetStorageFactory() {
+std::unique_ptr<IStorageFactory> SetupReplica::GetStorageFactory() {
   // TODO handle persistence mode
   std::stringstream dbPath;
   dbPath << CommonConstants::DB_FILE_PREFIX << GetReplicaConfig().replicaId;
@@ -238,7 +238,7 @@ std::unique_ptr<IStorageFactory> ReplicaSetup::GetStorageFactory() {
   return std::make_unique<v2MerkleTree::RocksDBStorageFactory>(dbPath.str());
 }
 
-std::vector<std::string> ReplicaSetup::getKeyDirectories(const std::string& path) {
+std::vector<std::string> SetupReplica::getKeyDirectories(const std::string& path) {
   std::vector<std::string> result;
   if (!fs::exists(path) || !fs::is_directory(path)) {
     throw std::invalid_argument{"Transaction signing keys path doesn't exist at " + path};
@@ -251,7 +251,7 @@ std::vector<std::string> ReplicaSetup::getKeyDirectories(const std::string& path
   return result;
 }
 
-void ReplicaSetup::setPublicKeysOfClients(
+void SetupReplica::setPublicKeysOfClients(
     const std::string& principalsMapping,
     const std::string& keysRootPath,
     std::set<std::pair<const std::string, std::set<uint16_t>>>& publicKeysOfClients) {
@@ -259,7 +259,7 @@ void ReplicaSetup::setPublicKeysOfClients(
   // "11 12;13 14;15 16;17 18;19 20", for 10 client ids divided into 5 participants.
 
   LOG_INFO(GL, "" << KVLOG(principalsMapping, keysRootPath));
-  std::vector<std::string> keysDirectories = ReplicaSetup::getKeyDirectories(keysRootPath);
+  std::vector<std::string> keysDirectories = SetupReplica::getKeyDirectories(keysRootPath);
   std::vector<std::string> clientIdChunks;
   boost::split(clientIdChunks, principalsMapping, boost::is_any_of(";"));
 

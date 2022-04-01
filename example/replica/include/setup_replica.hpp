@@ -20,9 +20,9 @@
 
 namespace concord::kvbc {
 
-class ReplicaSetup {
+class SetupReplica {
  public:
-  static std::unique_ptr<ReplicaSetup> ParseArgs(int argc, char** argv);
+  static std::unique_ptr<SetupReplica> ParseArgs(int argc, char** argv);
   static void ParseReplicaConfFile(bftEngine::ReplicaConfig& replicaConfig, const YAML::Node& rconfig_yaml);
 
   template <typename T>
@@ -44,7 +44,7 @@ class ReplicaSetup {
   static inline constexpr auto kTickGeneratorPeriod = std::chrono::seconds{1};
 
  private:
-  ReplicaSetup(const bftEngine::ReplicaConfig& config,
+  SetupReplica(const bftEngine::ReplicaConfig& config,
                std::unique_ptr<bft::communication::ICommunication> comm,
                logging::Logger logger,
                uint16_t metricsPort,
@@ -64,7 +64,7 @@ class ReplicaSetup {
         cronEntryNumberOfExecutes_{cronEntryNumberOfExecutes},
         addAllKeysAsPublic_{addAllKeysAsPublic} {}
 
-  ReplicaSetup() = delete;
+  SetupReplica() = delete;
 
   static std::vector<std::string> getKeyDirectories(const std::string& keysRootPath);
 

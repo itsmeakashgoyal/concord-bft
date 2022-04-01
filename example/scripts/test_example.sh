@@ -4,6 +4,7 @@ cleanup() {
   killall -q test_replica || true
   killall -q minio || true
   rm -rf gen-sec.*
+  rm -rf exampleReplicaTests_DB_*
 }
 
 #trap 'cleanup' SIGINT
@@ -21,19 +22,20 @@ echo "Generating new keys..."
 
 # run 4 replica's with unique replica id's
 echo "Running replica 1..."
-../replica/test_replica -i 0 -a replica_conf &
+#../replica/test_replica -i 0 -a replica_conf &
 echo "Running replica 2..."
-../replica/test_replica -i 1 -a replica_conf &
+#../replica/test_replica -i 1 -a replica_conf &
 echo "Running replica 3..."
-../replica/test_replica -i 2 -a replica_conf &
+#../replica/test_replica -i 2 -a replica_conf &
 echo "Running replica 4..."
-../replica/test_replica -i 3 -a replica_conf &
+#../replica/test_replica -i 3 -a replica_conf &
 
-# ../test_client -i 5 &
+echo "Running client!"
+../client/test_client -f 1 -c 0 -p 1800 -i 4 -r 4
 
 env MINIO_ROOT_USER=concordbft MINIO_ROOT_PASSWORD=concordbft ~/minio server minio_data_dir &
 
 sleep 5
 
 echo "Finished!"
-#cleanup
+# cleanup

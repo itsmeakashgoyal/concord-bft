@@ -3,7 +3,7 @@ project (test_replica LANGUAGES CXX)
 set(test_replica_source 
         main.cpp
         src/InternalCommandsHandler.cpp
-        src/Setup.cpp
+        src/setup_replica.cpp
         ${concord_bft_tools_SOURCE_DIR}/KeyfileIOUtils.cpp
 )
 add_executable(test_replica ${test_replica_source})
