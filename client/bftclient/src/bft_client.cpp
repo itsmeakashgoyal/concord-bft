@@ -39,17 +39,21 @@ Client::Client(SharedCommPtr comm, const ClientConfig& config, std::shared_ptr<c
       metrics_(config.id),
       histograms_(std::unique_ptr<Recorders>(new Recorders(config.id))) {
   setAggregator(aggregator);
+  LOG_INFO(GL, "akash::START Client::Client");
   // secrets_manager_config can be set only if transaction_signing_private_key_file_path is set
   if (config.secrets_manager_config) ConcordAssert(config.transaction_signing_private_key_file_path != std::nullopt);
   if (config.transaction_signing_private_key_file_path) {
+    LOG_INFO(GL, "akash:: Client::Client::1");
     // transaction signing is enabled
     auto file_path = config.transaction_signing_private_key_file_path.value();
     std::optional<std::string> key_plaintext;
     std::unique_ptr<ISecretsManagerImpl> secretsManager;
 
     if (config.secrets_manager_config) {
+      LOG_INFO(GL, "akash:: Client::Client::2");
       secretsManager = std::make_unique<SecretsManagerEnc>(config.secrets_manager_config.value());
     } else {
+      LOG_INFO(GL, "akash:: Client::Client::3");
       // private key file is in plain text, use secrets manager plain to read the file
       secretsManager = std::make_unique<SecretsManagerPlain>();
     }
@@ -62,15 +66,18 @@ Client::Client(SharedCommPtr comm, const ClientConfig& config, std::shared_ptr<c
   communication_->setReceiver(config_.id.val, &receiver_);
   communication_->start();
   if (config_.replicas_master_key_folder_path.has_value()) {
+    LOG_INFO(GL, "akash:: Client::Client::4");
     bft::communication::StateControl::instance().setGetPeerPubKeyMethod([&](uint32_t rid) {
       concord::secretsmanager::SecretsManagerPlain psm_;
       std::string key_path = config_.replicas_master_key_folder_path.value() + "/" + std::to_string(rid) + "/pub_key";
       return psm_.decryptFile(key_path).value_or("");
     });
   }
+  LOG_INFO(GL, "akash::END Client::Client");
 }
 
 Msg Client::createClientMsg(const RequestConfig& config, Msg&& request, bool read_only, uint16_t client_id) {
+  LOG_INFO(logger_, "akash::START Client::createClientMsg");
   uint8_t flags = read_only ? READ_ONLY_REQ : EMPTY_FLAGS_REQ;
   size_t expected_sig_len = 0;
   bool write_req_with_pre_exec = !read_only && config.pre_execute;
@@ -147,6 +154,7 @@ Msg Client::createClientMsg(const RequestConfig& config, Msg&& request, bool rea
   } else {
     header->reqSignatureLength = 0;
   }
+  LOG_INFO(logger_, "akash::END Client::createClientMsg");
 
   return msg;
 }
@@ -207,9 +215,11 @@ Reply Client::send(const WriteConfig& config, Msg&& request) {
 }
 
 Reply Client::send(const ReadConfig& config, Msg&& request) {
+  LOG_INFO(logger_, "akash::START Client::send");
   ConcordAssertEQ(reply_certificates_.size(), 0);
   auto match_config = readConfigToMatchConfig(config);
   bool read_only = true;
+  LOG_INFO(logger_, "akash::END Client::send");
   return send(match_config, config.request, std::move(request), read_only);
 }
 
@@ -217,6 +227,7 @@ Reply Client::send(const MatchConfig& match_config,
                    const RequestConfig& request_config,
                    Msg&& request,
                    bool read_only) {
+  LOG_INFO(logger_, "akash::START Client::send2");
   metrics_.retransmissionTimer.Get().Set(expected_commit_time_ms_.upperLimit());
   metrics_.updateAggregator();
   reply_certificates_.insert(std::make_pair(request_config.sequence_number, Matcher(match_config)));
@@ -225,16 +236,22 @@ Reply Client::send(const MatchConfig& match_config,
   auto start = std::chrono::steady_clock::now();
   auto end = start + request_config.timeout;
   while (std::chrono::steady_clock::now() < end) {
+    LOG_INFO(logger_, "akash::START Client::send2::1");
     bft::client::Msg msg(orig_msg);  // create copy here due to the loop
     if (primary_ && !read_only) {
+      LOG_INFO(logger_, "akash::START Client::send2::2");
       communication_->send(primary_.value().val, std::move(msg), config_.id.val);
     } else {
+      LOG_INFO(logger_, "akash::START Client::send2::3");
       std::set<bft::communication::NodeNum> dests;
       for (const auto& d : match_config.quorum.destinations) {
         dests.emplace(d.val);
       }
+      LOG_INFO(logger_, "akash::START Client::send2::4");
       communication_->send(dests, std::move(msg), config_.id.val);
+      LOG_INFO(logger_, "akash::START Client::send2::5");
     }
+    LOG_INFO(logger_, "akash::START Client::send2::6");
 
     if (auto reply = wait()) {
       expected_commit_time_ms_.add(
@@ -247,6 +264,7 @@ Reply Client::send(const MatchConfig& match_config,
 
   expected_commit_time_ms_.add(request_config.timeout.count());
   reply_certificates_.clear();
+  LOG_INFO(logger_, "akash::END Client::send2");
   throw TimeoutException(request_config.sequence_number, request_config.correlation_id);
 }
 

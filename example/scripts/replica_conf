@@ -29,7 +29,7 @@ dbSnapshotIntervalSeconds: 3600
 dbCheckpointMonitorIntervalSeconds: 60
 maxNumberOfDbCheckpoints: 0
 dbCheckpointDirPath:
-clientTransactionSigningEnabled: true
+clientTransactionSigningEnabled: false
 blockAccumulation: false
 publishReplicasMasterKeyOnStartup: 1
 txnSigningKeysPath: /tmp/transaction_signing_keys

@@ -35,6 +35,9 @@ $scriptdir/../replica/test_replica -i 3 -a $scriptdir/replica_conf &
 
 env MINIO_ROOT_USER=concordbft MINIO_ROOT_PASSWORD=concordbft ~/minio server minio_data_dir &
 
+echo "Running client!"
+$scriptdir/../client/test_client -f 1 -c 0 -p 1800 -i 4 -r 4 -m $scriptdir/../sample-msgs/msg-1
+
 sleep 5
 
 echo "Finished!"

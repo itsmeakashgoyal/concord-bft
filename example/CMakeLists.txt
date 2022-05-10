@@ -1,10 +1,15 @@
 add_subdirectory(cmf)
 add_subdirectory(comm-config)
 add_subdirectory(replica)
+add_subdirectory(client)
 
 add_custom_target(copy_scripts_dir ALL COMMENT "Copying scripts directory")
 add_custom_command(TARGET copy_scripts_dir
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/scripts ${CMAKE_CURRENT_BINARY_DIR}/scripts)
+
+add_custom_target(copy_samplemsg_dir ALL COMMENT "Copying sample-msgs directory")
+add_custom_command(TARGET copy_samplemsg_dir
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/sample-msgs ${CMAKE_CURRENT_BINARY_DIR}/sample-msgs)
 
 add_custom_target(copy_tls_cert_script ALL COMMENT "Copying TLS script")
 add_custom_command(TARGET copy_tls_cert_script

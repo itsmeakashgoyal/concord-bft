@@ -172,7 +172,8 @@ std::unique_ptr<SetupReplica> SetupReplica::ParseArgs(int argc, char** argv) {
     // If principalsMapping and txnSigningKeysPath are set, enable clientTransactionSigningEnabled. If only one of them
     // is set, throw an error
     if (!principalsMapping.empty() && !txnSigningKeysPath.empty()) {
-      replicaConfig.clientTransactionSigningEnabled = true;
+      // TODO akash: commenting this line because we do not require clientTransactionSigning
+      // replicaConfig.clientTransactionSigningEnabled = true;
       SetupReplica::setPublicKeysOfClients(principalsMapping, txnSigningKeysPath, replicaConfig.publicKeysOfClients);
     } else if (principalsMapping.empty() != txnSigningKeysPath.empty()) {
       throw std::runtime_error("Params principals-mapping and txn-signing-key-path must be set simultaneously.");

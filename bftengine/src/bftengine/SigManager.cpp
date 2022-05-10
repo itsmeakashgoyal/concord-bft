@@ -62,6 +62,7 @@ SigManager* SigManager::initImpl(ReplicaId myId,
     publicKeysMapping.insert({repIdToKeyPair.first, i++});
   }
 
+  LOG_INFO(GL, "akash::  SigManager::initImpl, publicKeysOfClients: " << KVLOG(publicKeysOfClients->size()));
   if (publicKeysOfClients) {
     // Multiple clients might be signing with the same private key (1 to many relation)
     // Also, we do not enforce to have all range between [lowBound, highBound] construcred. We might want to have less
@@ -69,6 +70,7 @@ SigManager* SigManager::initImpl(ReplicaId myId,
     lowBound = numRoReplicas + numReplicas + numOfClientProxies;
     highBound = lowBound + numOfExternalClients + numOfInternalClients + numOfClientServices - 1;
     for (const auto& p : (*publicKeysOfClients)) {
+      LOG_INFO(GL, "akash::  SigManager::initImpl, publicKeysOfClients: " << KVLOG(p.first));
       ConcordAssert(!p.first.empty());
       publickeys.push_back(make_pair(p.first, clientsKeysFormat));
       for (const auto e : p.second) {
