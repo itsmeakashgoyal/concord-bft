@@ -120,11 +120,14 @@ int main(int argc, char **argv) {
   try {
     logging::initLogger("logging.properties");
     ClientParams clientParams = setupClientParams(argc, argv);
+
+    LOG_INFO(logger, "akash::TesterClient main");
     if (clientParams.clientId == UINT16_MAX || clientParams.numOfFaulty == UINT16_MAX ||
         clientParams.numOfSlow == UINT16_MAX || clientParams.numOfOperations == UINT32_MAX) {
       LOG_ERROR(logger, "Wrong usage! Required parameters: " << argv[0] << " -f F -c C -p NUM_OPS -i ID");
       exit(-1);
     }
+    LOG_INFO(logger, "akash::TesterClient main::1");
     BasicRandomTestsRunner testsRunner(
         concord::kvbc::createClient(setupConsensusParams(clientParams), setupCommunicationParams(clientParams)));
     testsRunner.run(clientParams.numOfOperations);

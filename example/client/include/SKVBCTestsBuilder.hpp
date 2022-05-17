@@ -18,10 +18,10 @@ typedef std::map<std::pair<std::vector<uint8_t>, uint64_t>, std::vector<uint8_t>
 class SKVBCTestsBuilder {
  public:
   SKVBCTestsBuilder(BlockId lastBlockId) : prevLastBlockId_(lastBlockId), lastBlockId_(lastBlockId) {
-    LOG_INFO(logger_, "TestsBuilder: initialBlockId_=" << lastBlockId_);
+    LOG_INFO(logger_, "akash::TestsBuilder: initialBlockId_=" << lastBlockId_);
   }
 
-  ~SKVBCTestsBuilder() { LOG_INFO(logger_, "TestsBuilder: The last DB block is " << lastBlockId_); }
+  ~SKVBCTestsBuilder() { LOG_INFO(logger_, "akash::TestsBuilder: The last DB block is " << lastBlockId_); }
 
   void createRandomTest(size_t numOfRequests, size_t seed);
   std::list<skvbc::messages::SKVBCRequest>& getRequests() { return requests_; }

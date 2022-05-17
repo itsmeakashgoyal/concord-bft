@@ -63,6 +63,7 @@ Status ClientImp::invokeCommandSynch(const char* request,
                                      uint32_t* outActualReplySize,
                                      const std::string& cid,
                                      const std::string& span_context) {
+  LOG_INFO(logger_, "akash::START::ClientImp::InvokeCommandSynch");
   if (!isRunning()) return Status::IllegalOperation("todo");
 
   uint64_t timeoutMs = timeout <= std::chrono::milliseconds::zero() ? SimpleClient::INFINITE_TIMEOUT : timeout.count();
@@ -77,6 +78,7 @@ Status ClientImp::invokeCommandSynch(const char* request,
                                      *outActualReplySize,
                                      cid,
                                      span_context);
+  // LOG_INFO(logger_, "akash::START::ClientImp::InvokeCommandSynch " << KVLOG(res));
   switch (res) {
     case bftEngine::OperationResult::SUCCESS:
       return Status::OK();

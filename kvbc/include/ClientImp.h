@@ -15,6 +15,7 @@
 
 #include "KVBCInterfaces.h"
 #include "bftengine/SimpleClient.hpp"
+#include "Logger.hpp"
 
 namespace concord::kvbc {
 
@@ -39,6 +40,7 @@ class ClientImp : public IClient {
   void setMetricsAggregator(std::shared_ptr<concordMetrics::Aggregator> aggregator) override;
 
  protected:
+  logging::Logger logger_ = logging::getLogger("concord.kvbc.tests.ClientImp");
   ClientImp() = default;
   ~ClientImp() override = default;
 

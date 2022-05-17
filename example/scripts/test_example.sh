@@ -35,8 +35,11 @@ $scriptdir/../replica/test_replica -i 3 -a $scriptdir/replica_conf &
 
 env MINIO_ROOT_USER=concordbft MINIO_ROOT_PASSWORD=concordbft ~/minio server minio_data_dir &
 
+sleep 10
+
 echo "Running client!"
-$scriptdir/../client/test_client -f 1 -c 0 -p 1800 -i 4 -r 4 -m $scriptdir/../sample-msgs/msg-1
+$scriptdir/../client/test_client -f 1 -c 0 -p 10 -i 4 -r 4 -m $scriptdir/../sample-msgs/msg-1
+# $scriptdir/../../tests/simpleKVBC/TesterClient/skvbc_client -f 1 -c 0 -p 10 -i 4
 
 sleep 5
 

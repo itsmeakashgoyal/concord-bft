@@ -43,13 +43,17 @@ static_assert(
 namespace concord::kvbc::test {
 
 void TestsBuilder::createRandomTest(size_t numOfRequests, size_t seed) {
+  LOG_INFO(logger_, "akash::START::TestsBuilder::createRandomTest");
   create(numOfRequests, seed);
   for (auto elem : internalBlockchain_) {
+    LOG_INFO(logger_, "akash::START::TestsBuilder::createRandomTest::1");
     elem.second = SimpleBlock();
   }
+  LOG_INFO(logger_, "akash::END::TestsBuilder::createRandomTest");
 }
 
 void TestsBuilder::create(size_t numOfRequests, size_t seed) {
+  LOG_INFO(logger_, "akash::START::TestsBuilder::create");
   srand(seed);
   for (size_t i = 0; i < numOfRequests; i++) {
     int percent = rand() % 100 + 1;
@@ -68,6 +72,7 @@ void TestsBuilder::create(size_t numOfRequests, size_t seed) {
     const SimpleBlock& block = elem.second;
     ConcordAssert(blockId == block.id);
   }
+  LOG_INFO(logger_, "akash::END::TestsBuilder::create");
 }
 
 void TestsBuilder::addExpectedWriteReply(bool foundConflict) {
@@ -113,6 +118,7 @@ void TestsBuilder::addNewBlock(const vector<pair<vector<uint8_t>, vector<uint8_t
 }
 
 void TestsBuilder::createAndInsertRandomConditionalWrite() {
+  LOG_INFO(logger_, "akash::START::TestsBuilder::createAndInsertRandomConditionalWrite");
   // Create request
   uint64_t readVersion = lastBlockId_;
   if (lastBlockId_ > prevLastBlockId_ + CONFLICT_DISTANCE) {
@@ -200,9 +206,12 @@ void TestsBuilder::createAndInsertRandomConditionalWrite() {
   if (!foundConflict) {
     addNewBlock(write_req.writeset);
   }
+
+  LOG_INFO(logger_, "akash::END::TestsBuilder::createAndInsertRandomConditionalWrite");
 }
 
 void TestsBuilder::createAndInsertRandomRead() {
+  LOG_INFO(logger_, "akash::START::TestsBuilder::createAndInsertRandomRead");
   // Create request
   uint64_t readVersion = 0;
   if (prevLastBlockId_ == lastBlockId_) {
@@ -262,9 +271,11 @@ void TestsBuilder::createAndInsertRandomRead() {
   }
   // Add reply to m_replies
   replies_.push_back(reply);
+  LOG_INFO(logger_, "akash::END::TestsBuilder::createAndInsertRandomRead");
 }
 
 void TestsBuilder::createAndInsertGetLastBlock() {
+  LOG_INFO(logger_, "akash::START::TestsBuilder::createAndInsertGetLastBlock");
   // Create request
   SKVBCRequest request;
   request.request = SKVBCGetLastBlockRequest();
@@ -279,6 +290,7 @@ void TestsBuilder::createAndInsertGetLastBlock() {
 
   // Add reply to m_replies
   replies_.push_back(reply);
+  LOG_INFO(logger_, "akash::END::TestsBuilder::createAndInsertGetLastBlock");
 }
 
 }  // namespace concord::kvbc::test

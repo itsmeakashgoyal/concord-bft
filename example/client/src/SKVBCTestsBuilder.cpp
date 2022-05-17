@@ -30,13 +30,17 @@ static_assert(
 namespace concord::kvbc::test {
 
 void SKVBCTestsBuilder::createRandomTest(size_t numOfRequests, size_t seed) {
+  LOG_INFO(logger_, "akash::START::SKVBCTestsBuilder::createRandomTest");
   create(numOfRequests, seed);
   for (auto elem : internalBlockchain_) {
+    LOG_INFO(logger_, "akash::START::SKVBCTestsBuilder::createRandomTest::1");
     elem.second = SimpleBlock();
   }
+  LOG_INFO(logger_, "akash::END::SKVBCTestsBuilder::createRandomTest");
 }
 
 void SKVBCTestsBuilder::create(size_t numOfRequests, size_t seed) {
+  LOG_INFO(logger_, "akash::START::SKVBCTestsBuilder::create");
   srand(seed);
   for (size_t i = 0; i < numOfRequests; i++) {
     int percent = rand() % 100 + 1;
@@ -55,6 +59,8 @@ void SKVBCTestsBuilder::create(size_t numOfRequests, size_t seed) {
     const SimpleBlock& block = elem.second;
     ConcordAssert(blockId == block.id);
   }
+
+  LOG_INFO(logger_, "akash::END::SKVBCTestsBuilder::create");
 }
 
 void SKVBCTestsBuilder::addExpectedWriteReply(bool foundConflict) {
@@ -190,6 +196,7 @@ void SKVBCTestsBuilder::createAndInsertRandomConditionalWrite() {
 }
 
 void SKVBCTestsBuilder::createAndInsertRandomRead() {
+  LOG_INFO(logger_, "akash::START::SKVBCTestsBuilder::createAndInsertRandomRead");
   // Create request
   uint64_t readVersion = 0;
   if (prevLastBlockId_ == lastBlockId_) {
@@ -249,9 +256,11 @@ void SKVBCTestsBuilder::createAndInsertRandomRead() {
   }
   // Add reply to m_replies
   replies_.push_back(reply);
+  LOG_INFO(logger_, "akash::END::SKVBCTestsBuilder::createAndInsertRandomRead");
 }
 
 void SKVBCTestsBuilder::createAndInsertGetLastBlock() {
+  LOG_INFO(logger_, "akash::START::SKVBCTestsBuilder::createAndInsertGetLastBlock");
   // Create request
   SKVBCRequest request;
   request.request = SKVBCGetLastBlockRequest();
@@ -266,6 +275,7 @@ void SKVBCTestsBuilder::createAndInsertGetLastBlock() {
 
   // Add reply to m_replies
   replies_.push_back(reply);
+  LOG_INFO(logger_, "akash::END::SKVBCTestsBuilder::createAndInsertGetLastBlock");
 }
 
 }  // namespace concord::kvbc::test

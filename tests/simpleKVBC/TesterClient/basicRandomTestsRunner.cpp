@@ -27,12 +27,15 @@ void BasicRandomTestsRunner::sleep(int ops) {
 }
 
 void BasicRandomTestsRunner::run(size_t numOfOperations) {
+  LOG_INFO(logger_, "akash::START::BasicRandomTestsRunner::run");
   testsBuilder_ = std::make_unique<TestsBuilder>(getInitialLastBlockId());
   testsBuilder_->createRandomTest(numOfOperations, 1111);
   ConcordAssert(testsBuilder_->getRequests().size() == testsBuilder_->getReplies().size());
 
   int ops = 0;
+  LOG_INFO(logger_, "akash::START::BasicRandomTestsRunner::run::2");
   while (!testsBuilder_->getRequests().empty()) {
+    LOG_INFO(logger_, "akash::START::BasicRandomTestsRunner::run::3");
     sleep(ops);
     SKVBCRequest request = testsBuilder_->getRequests().front();
     SKVBCReply expectedReply = testsBuilder_->getReplies().front();
@@ -45,6 +48,7 @@ void BasicRandomTestsRunner::run(size_t numOfOperations) {
     skvbc::messages::serialize(serialized_request, request);
     skvbc::messages::serialize(serialized_reply, expectedReply);
     size_t expectedReplySize = serialized_reply.size();
+    LOG_INFO(logger_, "akash::START::BasicRandomTestsRunner::run::3" << KVLOG(expectedReplySize));
     uint32_t actualReplySize = 0;
     LOG_INFO(logger_, "invoking: " << KVLOG(ops, readOnly));
     static_assert(
@@ -59,6 +63,7 @@ void BasicRandomTestsRunner::run(size_t numOfOperations) {
                                            reinterpret_cast<char*>(serialized_reply.data()),
                                            &actualReplySize);
 
+    LOG_INFO(logger_, "akash::START::BasicRandomTestsRunner::run::3" << KVLOG(actualReplySize));
     SKVBCReply actualReply;
     deserialize(serialized_reply, actualReply);
     if ((holds_alternative<SKVBCWriteRequest>(request.request) or
@@ -72,7 +77,7 @@ void BasicRandomTestsRunner::run(size_t numOfOperations) {
     }
   }
   sleep(1);
-  LOG_INFO(logger_, "\n*** Test completed. " << ops << " messages have been handled.");
+  LOG_INFO(logger_, "\n*** akash:: Test completed. " << ops << " messages have been handled.");
 }
 
 BlockId BasicRandomTestsRunner::getInitialLastBlockId() {

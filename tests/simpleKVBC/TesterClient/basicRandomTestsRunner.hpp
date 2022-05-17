@@ -22,8 +22,10 @@ namespace concord::kvbc::test {
 class BasicRandomTestsRunner {
  public:
   BasicRandomTestsRunner(IClient *client) : client_(client) {
+    LOG_INFO(logger_, "akash::START::BasicRandomTestsRunner::BasicRandomTestsRunner");
     ConcordAssert(!client_->isRunning());
     client_->start();
+    LOG_INFO(logger_, "akash::END::BasicRandomTestsRunner::BasicRandomTestsRunner");
   }
   ~BasicRandomTestsRunner() { client_->stop(); }
   void run(size_t numOfOperations);
