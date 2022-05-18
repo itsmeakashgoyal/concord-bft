@@ -11,19 +11,20 @@
 # file.
 
 import copy
-import random
-import trio
-import time
-
-from collections import namedtuple
-from util.skvbc_exceptions import BadReplyError
-from util import eliot_logging as log
-from util import bft
-from enum import Enum
-from util import bft_network_partitioning as net
-
 import os.path
+import random
 import sys
+import time
+from collections import namedtuple
+from enum import Enum
+
+import trio
+
+from util import bft
+from util import bft_network_partitioning as net
+from util import eliot_logging as log
+from util.skvbc_exceptions import BadReplyError
+
 sys.path.append(os.path.abspath("../../build/tests/apollo/util/"))
 import skvbc_messages
 

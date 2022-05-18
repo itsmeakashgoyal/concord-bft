@@ -15,6 +15,7 @@
 
 #include "KVBCInterfaces.h"
 #include "bftengine/SimpleClient.hpp"
+#include "Logger.hpp"
 
 namespace concord::kvbc {
 
@@ -41,6 +42,7 @@ class ClientImp : public IClient {
  protected:
   ClientImp() = default;
   ~ClientImp() override = default;
+  logging::Logger logger_ = logging::getLogger("concord.kvbc.tests.ClientImp");
 
   ClientConfig config_;
   std::unique_ptr<bftEngine::SeqNumberGeneratorForClientRequests> seqGen_;

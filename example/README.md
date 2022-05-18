@@ -68,16 +68,37 @@ $scriptdir../replica/test_replica -i 3 -a $scriptdir/replica_conf &
 ```
 
 * Running client
+```
+$scriptdir/../client/test_client -f 1 -c 0 -i 4 -r 4 -m $scriptdir/../sample-msgs/msg-1
+```
+Here we are running only a single client which is used to send KV messages as ClientRequestMsg directly through bftclient.
 
 * For resources cleanup.
 
 
 ## Directory Structure.
+- [client](./client): Client codebase used to setup and maintain client. Used to parse message from sample message and create a new client read/write message for the processing.
+    - [include](./client/include): External interfaces of client
+	- [src](./client/src): Internal implementation of client
 - [kv-cmf](./kv-cmf): Byzantine fault-tolerant K/V store messages/commands for the open source state machine example.
 - [replica](./replica): The replica's codebase is used to set up and maintain the replica.
 	- [include](./replica/include): External interfaces of replica
 	- [src](./replica/src): Internal implementation of replica
+- [sample-msgs](./sample-msgs): Sample client read/write messages samples to further create ClientRequestMsg.
 - [scripts](./scripts): Build scripts, replica config file, etc.
+
+
+## How to use sample msgs
+Sample message are used to set some parameters which will further used to create ClientRequestMsg.
+All the sample messages can be found [sample-msgs](./sample-msgs) folder.
+
+Following are the parameters of sample msg,
+* **type**: This is a message type parameters i.e. it shows the type of message Write, Read and Both. According to this parameter client request msg will be created.
+* **number_of_operations**: This parameter is used to send number of read/write messages.
+* **sender_node_id**: Default client id for a single client
+* **req_timeout_milli**: Timeout parameter if request not send.
+* **num_of_writes**: Number of writes used to create a KVWriteRequest.
+* **num_of_keys_in_readset**: Number of readset used to create a KVWriteRequest. To know more about the KV CMF messages [refer](./kv-cmf/kv_replica_msgs.cmf).
 
 
 ## Future Plans

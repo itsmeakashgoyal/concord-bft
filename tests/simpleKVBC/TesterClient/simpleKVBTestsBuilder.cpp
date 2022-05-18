@@ -21,6 +21,7 @@
 #include "DbMetadataStorage.cpp"
 #include "storage/db_types.h"
 #include "block_metadata.hpp"
+#include "Logger.hpp"
 
 using std::set;
 using std::chrono::seconds;
@@ -126,6 +127,7 @@ void TestsBuilder::createAndInsertRandomConditionalWrite() {
   SKVBCRequest request;
   request.request = SKVBCWriteRequest();
   SKVBCWriteRequest& write_req = get<SKVBCWriteRequest>(request.request);
+
   write_req.readset.resize(numOfKeysInReadSet);
   write_req.writeset.resize(numOfWrites);
   write_req.read_version = readVersion;

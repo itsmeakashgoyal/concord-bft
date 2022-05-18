@@ -5,9 +5,10 @@ cleanup() {
   killall -q minio || true
   rm -rf gen-sec.*
   rm -rf exampleReplicaTests_DB_*
+  rm -rf certs
+  rm -rf minio_data_dir
+  rm -rf replica_keys_*
 }
-
-#trap 'cleanup' SIGINT
 
 cleanup
 
@@ -34,6 +35,11 @@ echo "Running replica 4..."
 $scriptdir/../replica/test_replica -i 3 -a $scriptdir/replica_conf &
 
 env MINIO_ROOT_USER=concordbft MINIO_ROOT_PASSWORD=concordbft ~/minio server minio_data_dir &
+
+sleep 10
+
+echo "Running client!"
+time $scriptdir/../client/test_client -f 1 -c 0 -i 4 -r 4 -m $scriptdir/../sample-msgs/msg-1
 
 sleep 5
 

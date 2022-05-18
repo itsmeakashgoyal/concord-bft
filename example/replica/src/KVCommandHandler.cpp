@@ -50,7 +50,7 @@ using Hash = Hasher::Digest;
 const uint64_t LONG_EXEC_CMD_TIME_IN_SEC = 11;
 
 template <typename Span>
-static Hash hash(const Span &span) {
+static Hash createHash(const Span &span) {
   return Hasher{}.digest(span.data(), span.size());
 }
 
@@ -63,7 +63,7 @@ static const std::string &keyHashToCategory(const Hash &keyHash) {
   return BLOCK_MERKLE_CAT_ID;
 }
 
-static const std::string &keyToCategory(const std::string &key) { return keyHashToCategory(hash(key)); }
+static const std::string &keyToCategory(const std::string &key) { return keyHashToCategory(createHash(key)); }
 
 void KVCommandHandler::add(std::string &&key,
                            std::string &&value,
@@ -94,8 +94,10 @@ void KVCommandHandler::execute(KVCommandHandler::ExecutionRequestsQueue &request
   BlockMerkleUpdates merkleUpdates;
 
   for (auto &req : requests) {
-    if (req.outExecutionStatus != static_cast<uint32_t>(OperationResult::UNKNOWN))
+    if (req.outExecutionStatus != static_cast<uint32_t>(OperationResult::UNKNOWN)) {
       continue;  // Request already executed (internal)
+    }
+
     req.outReplicaSpecificInfoSize = 0;
     OperationResult res;
     if (req.requestSize <= 0) {
@@ -111,6 +113,10 @@ void KVCommandHandler::execute(KVCommandHandler::ExecutionRequestsQueue &request
                                    req.outReply,
                                    req.outActualReplySize,
                                    req.outReplicaSpecificInfoSize);
+
+      LOG_INFO(m_logger,
+               "START KVCommandHandler::execute::executeReadOnlyCommand"
+                   << KVLOG(req.requestSize, req.maxReplySize, req.outActualReplySize, req.outReplicaSpecificInfoSize));
     } else {
       // Only if requests size is greater than 1 and other conditions are met, block accumulation is enabled.
       bool isBlockAccumulationEnabled =
@@ -125,6 +131,14 @@ void KVCommandHandler::execute(KVCommandHandler::ExecutionRequestsQueue &request
                                 isBlockAccumulationEnabled,
                                 verUpdates,
                                 merkleUpdates);
+      LOG_INFO(m_logger,
+               "START KVCommandHandler::execute::executeWriteCommand" << KVLOG(req.requestSize,
+                                                                               req.executionSequenceNum,
+                                                                               req.flags,
+                                                                               isBlockAccumulationEnabled,
+                                                                               req.maxReplySize,
+                                                                               req.outActualReplySize,
+                                                                               req.outReplicaSpecificInfoSize));
     }
     if (res != OperationResult::SUCCESS) LOG_WARN(m_logger, "Command execution failed!");
 
@@ -336,11 +350,14 @@ void KVCommandHandler::addKeys(const KVWriteRequest &writeReq,
         verUpdates,
         merkleUpdates);
   }
+
   addMetadataKeyValue(verUpdates, sequenceNum);
 }
 
 void KVCommandHandler::addBlock(VersionedUpdates &verUpdates, BlockMerkleUpdates &merkleUpdates) {
+  LOG_INFO(m_logger, "START KVCommandHandler::addBlock");
   BlockId currBlock = m_storage->getLastBlockId();
+  LOG_INFO(m_logger, "START KVCommandHandler::addBlock " << KVLOG(currBlock));
   Updates updates;
 
   // Add all key-values in the block merkle category as public ones.
@@ -371,7 +388,11 @@ void KVCommandHandler::addBlock(VersionedUpdates &verUpdates, BlockMerkleUpdates
   updates.add(VERSIONED_KV_CAT_ID, std::move(verUpdates));
   updates.add(BLOCK_MERKLE_CAT_ID, std::move(merkleUpdates));
   const auto newBlockId = m_blockAdder->add(std::move(updates));
+
+  LOG_INFO(m_logger, "START KVCommandHandler::addBlock " << KVLOG(newBlockId));
+
   ConcordAssert(newBlockId == currBlock + 1);
+  LOG_INFO(m_logger, "END KVCommandHandler::addBlock");
 }
 
 bool KVCommandHandler::hasConflictInBlockAccumulatedRequests(const std::string &key,
@@ -423,6 +444,8 @@ OperationResult KVCommandHandler::executeWriteCommand(uint32_t requestSize,
                << " BLOCK_ACCUMULATION_ENABLED=" << isBlockAccumulationEnabled);
   BlockId currBlock = m_storage->getLastBlockId();
 
+  LOG_INFO(m_logger, "START KVCommandHandler::executeWriteCommand " << KVLOG(currBlock));
+
   // Look for conflicts
   bool hasConflict = false;
   for (size_t i = 0; !hasConflict && i < write_req.readset.size(); i++) {
@@ -463,8 +486,14 @@ OperationResult KVCommandHandler::executeWriteCommand(uint32_t requestSize,
   else
     write_rep.latest_block = currBlock;
 
+  LOG_INFO(m_logger, "START KVCommandHandler::executeWriteCommand " << KVLOG(write_rep.success));
+  LOG_INFO(m_logger, "START KVCommandHandler::executeWriteCommand " << KVLOG(write_rep.latest_block));
+
   vector<uint8_t> serialized_reply;
   serialize(serialized_reply, reply);
+
+  LOG_INFO(m_logger, "START KVCommandHandler::executeWriteCommand " << KVLOG(serialized_reply.size()));
+
   ConcordAssert(serialized_reply.size() <= maxReplySize);
   copy(serialized_reply.begin(), serialized_reply.end(), outReply);
   outReplySize = serialized_reply.size();
@@ -474,6 +503,7 @@ OperationResult KVCommandHandler::executeWriteCommand(uint32_t requestSize,
     LOG_INFO(m_logger,
              "ConditionalWrite message handled; writesCounter=" << m_writesCounter
                                                                 << " currBlock=" << write_rep.latest_block);
+  LOG_INFO(m_logger, "END KVCommandHandler::executeWriteCommand");
   return OperationResult::SUCCESS;
 }
 
@@ -524,6 +554,7 @@ OperationResult KVCommandHandler::executeReadCommand(const KVReadRequest &reques
                                                      size_t maxReplySize,
                                                      char *outReply,
                                                      uint32_t &outReplySize) {
+  LOG_INFO(m_logger, "START KVCommandHandler::executeReadCommand");
   LOG_INFO(m_logger,
            "Execute READ command: type=KVReadRequest, numberOfKeysToRead=" << request.keys.size()
                                                                            << ", readVersion=" << request.read_version);
@@ -557,6 +588,7 @@ OperationResult KVCommandHandler::executeReadCommand(const KVReadRequest &reques
   outReplySize = serialized_reply.size();
   ++m_readsCounter;
   LOG_INFO(m_logger, "READ message handled; readsCounter=" << m_readsCounter);
+  LOG_INFO(m_logger, "END KVCommandHandler::executeReadCommand");
   return OperationResult::SUCCESS;
 }
 
@@ -591,6 +623,7 @@ OperationResult KVCommandHandler::executeReadOnlyCommand(uint32_t requestSize,
                                                          char *outReply,
                                                          uint32_t &outReplySize,
                                                          uint32_t &specificReplicaInfoOutReplySize) {
+  LOG_INFO(m_logger, "START KVCommandHandler::executeReadOnlyCommand");
   KVRequest deserialized_request;
   try {
     static_assert(sizeof(*request) == sizeof(uint8_t),

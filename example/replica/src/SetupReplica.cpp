@@ -108,7 +108,7 @@ std::unique_ptr<SetupReplica> SetupReplica::ParseArgs(int argc, char** argv) {
     args << argv[i] << " ";
   }
   LOG_INFO(GL, "Parsing" << KVLOG(argc) << " arguments, args:" << args.str());
-  logging::Logger logger = logging::getLogger("test_replica");
+  logging::Logger logger = logging::getLogger("osexample::test_replica");
 
   try {
     bftEngine::ReplicaConfig& replicaConfig = bftEngine::ReplicaConfig::instance();
